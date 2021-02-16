@@ -145,6 +145,7 @@ const ModalizeBase = (
   const snaps = snapPoint ? [0, endHeight - snapPoint, endHeight] : [0, endHeight];
 
   const [modalHeightValue, setModalHeightValue] = React.useState(adjustValue);
+  const [scrollableHeightValue, setScrollableHeightValue] = React.useState(0);
   const [lastSnap, setLastSnap] = React.useState(snapPoint ? endHeight - snapPoint : 0);
   const [isVisible, setIsVisible] = React.useState(false);
   const [showContent, setShowContent] = React.useState(true);
@@ -162,11 +163,15 @@ const ModalizeBase = (
   const cancelTranslateY = React.useRef(new Animated.Value(1)).current; // 1 by default to have the translateY animation running
   const componentTranslateY = React.useRef(new Animated.Value(0)).current;
   const overlay = React.useRef(new Animated.Value(0)).current;
+  const scrollableHeight = React.useRef(new Animated.Value(0)).current;
   const beginScrollY = React.useRef(new Animated.Value(0)).current;
+  const beginScrollYInverted = React.useRef(Animated.subtract(scrollableHeight, beginScrollY))
+    .current;
   const dragY = React.useRef(new Animated.Value(0)).current;
   const translateY = React.useRef(new Animated.Value(screenHeight)).current;
-  const reverseBeginScrollY = React.useRef(Animated.multiply(new Animated.Value(-1), beginScrollY))
-    .current;
+  const reverseBeginScrollY = React.useRef(
+    Animated.multiply(new Animated.Value(-1), beginScrollYInverted),
+  ).current;
 
   const tapGestureModalizeRef = React.useRef<TapGestureHandler>(null);
   const panGestureChildrenRef = React.useRef<PanGestureHandler>(null);
@@ -192,7 +197,20 @@ const ModalizeBase = (
 
   let willCloseModalize = false;
 
-  beginScrollY.addListener(({ value }) => setBeginScrollYValue(value));
+  React.useEffect(() => {
+    const id = scrollableHeight.addListener(({ value }) => {
+      setScrollableHeightValue(value);
+      // console.log({ scrollableHeight: value });
+    });
+    return () => scrollableHeight.removeListener(id);
+  }, [computedHeight]);
+  React.useEffect(() => {
+    const id = beginScrollY.addListener(({ value }) => {
+      setBeginScrollYValue(scrollableHeightValue - value);
+      // console.log({ beginScrollY: scrollableHeightValue - value });
+    });
+    return () => beginScrollY.removeListener(id);
+  }, [scrollableHeightValue]);
 
   const handleBackPress = (): boolean => {
     if (alwaysOpen) {
@@ -314,7 +332,7 @@ const ModalizeBase = (
     backButtonListenerRef.current?.remove();
     cancelTranslateY.setValue(1);
     setBeginScrollYValue(0);
-    beginScrollY.setValue(0);
+    beginScrollY.setValue(scrollableHeightValue);
 
     Animated.parallel([
       Animated.timing(overlay, {
@@ -412,6 +430,11 @@ const ModalizeBase = (
     }
 
     handleBaseLayout('content', nativeEvent.layout.height);
+  };
+
+  const handleScrollableSizeChange = (_ /* width: number */, height: number) => {
+    // console.log('Scrollable height:', height - computedHeight);
+    scrollableHeight.setValue(height - computedHeight);
   };
 
   const handleComponentLayout = (
@@ -604,7 +627,7 @@ const ModalizeBase = (
     // If we drag from the HeaderComponent/FooterComponent/FloatingComponent we allow the translation animation
     if (nativeEvent.oldState === State.BEGAN) {
       componentTranslateY.setValue(1);
-      beginScrollY.setValue(0);
+      beginScrollY.setValue(scrollableHeightValue);
     }
 
     handleChildren({ nativeEvent }, 'component');
@@ -745,6 +768,7 @@ const ModalizeBase = (
       }),
       scrollEventThrottle,
       onLayout: handleContentLayout,
+      onContentSizeChange: handleScrollableSizeChange,
       scrollEnabled,
       keyboardDismissMode,
     };
