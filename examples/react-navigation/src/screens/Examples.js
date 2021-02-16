@@ -10,6 +10,7 @@ import { SimpleContent } from '../components/modals/SimpleContent';
 import { FixedContent } from '../components/modals/FixedContent';
 import { SnappingList } from '../components/modals/SnappingList';
 import { FlatList } from '../components/modals/FlatList';
+import { FlatListInverted } from '../components/modals/FlatListInverted';
 import { SectionList } from '../components/modals/SectionList';
 import { AlwaysOpen } from '../components/modals/AlwaysOpen';
 import { AppleMusicPlayer } from '../components/modals/AppleMusicPlayer';
@@ -31,9 +32,7 @@ export const ExamplesScreen = () => {
         style={{
           borderRadius: animated.interpolate({ inputRange: [0, 1], outputRange: [0, 12] }),
           transform: [
-            {
-              scale: animated.interpolate({ inputRange: [0, 1], outputRange: [1, 0.92] }),
-            },
+            { scale: animated.interpolate({ inputRange: [0, 1], outputRange: [1, 0.92] }) },
           ],
           opacity: animated.interpolate({ inputRange: [0, 1], outputRange: [1, 0.75] }),
         }}
@@ -46,6 +45,7 @@ export const ExamplesScreen = () => {
           'Snapping list',
           'Absolute header',
           'Flat List',
+          'Flat List (inverted)',
           'Section List',
           'Apple Music Player',
           'Facebook WebView',
@@ -58,10 +58,11 @@ export const ExamplesScreen = () => {
           <SnappingList ref={el => (modals[2] = el)} />
           <AbsoluteHeader ref={el => (modals[3] = el)} />
           <FlatList ref={el => (modals[4] = el)} />
-          <SectionList ref={el => (modals[5] = el)} />
-          <AppleMusicPlayer ref={el => (modals[6] = el)} animated={animated} />
-          <FacebookWebView ref={el => (modals[7] = el)} />
-          <SlackTabView ref={el => (modals[8] = el)} />
+          <FlatListInverted ref={el => (modals[5] = el)} />
+          <SectionList ref={el => (modals[6] = el)} />
+          <AppleMusicPlayer ref={el => (modals[7] = el)} animated={animated} />
+          <FacebookWebView ref={el => (modals[8] = el)} />
+          <SlackTabView ref={el => (modals[9] = el)} />
           <AlwaysOpen />
         </Portal>
       </Layout>
