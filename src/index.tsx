@@ -145,6 +145,7 @@ const ModalizeBase = (
   const snaps = snapPoint ? [0, endHeight - snapPoint, endHeight] : [0, endHeight];
 
   const [modalHeightValue, setModalHeightValue] = React.useState(adjustValue);
+  const [contentHeightValue, setContentHeightValue] = React.useState(0);
   const [scrollableHeightValue, setScrollableHeightValue] = React.useState(0);
   const [lastSnap, setLastSnap] = React.useState(snapPoint ? endHeight - snapPoint : 0);
   const [isVisible, setIsVisible] = React.useState(false);
@@ -203,7 +204,7 @@ const ModalizeBase = (
       // console.log({ scrollableHeight: value });
     });
     return () => scrollableHeight.removeListener(id);
-  }, [computedHeight]);
+  }, []);
   React.useEffect(() => {
     const id = beginScrollY.addListener(({ value }) => {
       setBeginScrollYValue(scrollableHeightValue - value);
@@ -211,6 +212,12 @@ const ModalizeBase = (
     });
     return () => beginScrollY.removeListener(id);
   }, [scrollableHeightValue]);
+
+  React.useEffect(() => {
+    // console.log({ modalHeightValue, contentHeightValue });
+    if (!modalHeightValue) return;
+    scrollableHeight.setValue(Math.max(0, contentHeightValue - modalHeightValue));
+  }, [contentHeightValue, modalHeightValue]);
 
   const handleBackPress = (): boolean => {
     if (alwaysOpen) {
@@ -432,9 +439,8 @@ const ModalizeBase = (
     handleBaseLayout('content', nativeEvent.layout.height);
   };
 
-  const handleScrollableSizeChange = (_ /* width: number */, height: number) => {
-    // console.log('Scrollable height:', height - computedHeight);
-    scrollableHeight.setValue(height - computedHeight);
+  const handleContentSizeChange = (_, height: number) => {
+    setContentHeightValue(height);
   };
 
   const handleComponentLayout = (
@@ -768,7 +774,7 @@ const ModalizeBase = (
       }),
       scrollEventThrottle,
       onLayout: handleContentLayout,
-      onContentSizeChange: handleScrollableSizeChange,
+      onContentSizeChange: handleContentSizeChange,
       scrollEnabled,
       keyboardDismissMode,
     };
