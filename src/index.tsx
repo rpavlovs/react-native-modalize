@@ -216,8 +216,10 @@ const ModalizeBase = (
   React.useEffect(() => {
     // console.log({ modalHeightValue, contentHeightValue });
     if (!modalHeightValue) return;
-    scrollableHeight.setValue(Math.max(0, contentHeightValue - modalHeightValue));
-  }, [contentHeightValue, modalHeightValue]);
+    scrollableHeight.setValue(
+      Math.max(0, contentHeightValue - modalHeightValue + (keyboardToggle ? keyboardHeight : 0)),
+    );
+  }, [contentHeightValue, modalHeightValue, keyboardToggle, keyboardHeight]);
 
   const handleBackPress = (): boolean => {
     if (alwaysOpen) {
